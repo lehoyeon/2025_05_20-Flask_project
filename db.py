@@ -22,3 +22,56 @@ class Database:
         if self.connection:
             self.connection.close()
             print("MariaDB 연결이 종료되었습니다.")
+            
+    def fetch_rental_performance():
+        db = Database()
+        if not db.connection:
+            return None
+        try:
+            with db.connection.cursor() as cursor:
+                # 전체 실적 요약 (총 대여 횟수, 총 수익)
+                cursor.execute("""
+                    SELECT 
+                        COUNT(rental_id) AS total_rentals,
+                        COALESCE(SUM(price), 0) AS total_revenue
+                    FROM rentals
+                """)
+                total_summary = cursor.fetchone()
+
+                # 사용자별 실적 (이름, 대여 건수, 총 금액)
+                cursor.execute("""
+                    SELECT 
+                        u.name AS username,
+                        COUNT(r.rental_id) AS rental_count,
+                        COALESCE(SUM(r.price), 0) AS total_amount
+                    FROM users u
+                    LEFT JOIN rentals r ON u.user_id = r.user_id
+                    GROUP BY u.user_id, u.name
+                    ORDER BY total_amount DESC
+                """)
+                user_stats = cursor.fetchall()
+
+                # 물건별 실적 (물건명, 대여 횟수, 누적 수익)
+                cursor.execute("""
+                    SELECT 
+                        i.name AS item_name,
+                        COUNT(r.rental_id) AS rental_count,
+                        COALESCE(SUM(r.price), 0) AS total_revenue
+                    FROM items i
+                    LEFT JOIN rentals r ON i.item_id = r.item_id
+                    GROUP BY i.item_id, i.name
+                    ORDER BY total_revenue DESC
+                """)
+                item_stats = cursor.fetchall()
+
+            return {
+                'total_rentals': total_summary['total_rentals'],
+                'total_revenue': total_summary['total_revenue'],
+                'user_stats': user_stats,
+                'item_stats': item_stats
+            }
+        except Error as e:
+            print(f"쿼리 실행 중 오류 발생: {e}")
+            return None
+        finally:
+            db.close()

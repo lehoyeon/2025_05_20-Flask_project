@@ -3,88 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <title>물건 대여 실적 현황</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts for modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f7f9fb;
+            color: #222;
+        }
+        .dashboard-header {
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        .summary-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(90, 114, 123, 0.11);
+            background: linear-gradient(90deg, #6a82fb 0%, #fc5c7d 100%);
+            color: #fff;
+        }
+        .summary-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        .card-table {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(90, 114, 123, 0.10);
+            background: #fff;
+        }
+        .table thead {
+            background: #f1f3f7;
+        }
+        .table th {
+            font-weight: 600;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #f7f9fb;
+        }
+        @media (max-width: 767px) {
+            .summary-cards-row {
+                flex-direction: column;
+            }
+            .summary-card {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container my-5">
-    <h1 class="mb-4">물건 대여 실적 현황</h1>
+<div class="container py-5">
+    <h1 class="dashboard-header mb-5 text-center">물건 대여 실적 현황</h1>
 
     <!-- 전체 실적 요약 -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            전체 실적 요약
+    <div class="d-flex gap-4 mb-5 summary-cards-row flex-wrap justify-content-center">
+        <div class="summary-card p-4 flex-fill text-center">
+            <div class="mb-2">총 대여 횟수</div>
+            <div class="summary-value">{{ total_rentals }}</div>
         </div>
-        <div class="card-body d-flex justify-content-around">
-            <div>
-                <h5>총 대여 횟수</h5>
-                <p class="fs-4">{{ total_rentals }}</p>
-            </div>
-            <div>
-                <h5>총 수익 금액</h5>
-                <p class="fs-4">{{ "{:,.0f}".format(total_revenue) }}원</p>
-            </div>
+        <div class="summary-card p-4 flex-fill text-center">
+            <div class="mb-2">총 수익 금액</div>
+            <div class="summary-value">{{ "{:,.0f}".format(total_revenue) }}원</div>
         </div>
     </div>
 
     <!-- 사용자별 실적 -->
-    <div class="card mb-4">
-        <div class="card-header bg-success text-white">
-            사용자별 실적
-        </div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>사용자</th>
-                    <th>대여 건수</th>
-                    <th>총 금액(원)</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for user in user_stats %}
+    <div class="mb-5">
+        <div class="section-title">사용자별 실적</div>
+        <div class="card-table p-3">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead>
                     <tr>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.rental_count }}</td>
-                        <td>{{ "{:,.0f}".format(user.total_amount) }}</td>
+                        <th>사용자</th>
+                        <th>대여 건수</th>
+                        <th>총 금액(원)</th>
                     </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="3" class="text-center">데이터가 없습니다.</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {% for user in user_stats %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.rental_count }}</td>
+                            <td>{{ "{:,.0f}".format(user.total_amount) }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">데이터가 없습니다.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <!-- 물건별 실적 -->
-    <div class="card mb-4">
-        <div class="card-header bg-info text-white">
-            물건별 실적
-        </div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>물건명</th>
-                    <th>대여 횟수</th>
-                    <th>누적 수익(원)</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for item in item_stats %}
+    <div>
+        <div class="section-title">물건별 실적</div>
+        <div class="card-table p-3">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead>
                     <tr>
-                        <td>{{ item.item_name }}</td>
-                        <td>{{ item.rental_count }}</td>
-                        <td>{{ "{:,.0f}".format(item.total_revenue) }}</td>
+                        <th>물건명</th>
+                        <th>대여 횟수</th>
+                        <th>누적 수익(원)</th>
                     </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="3" class="text-center">데이터가 없습니다.</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {% for item in item_stats %}
+                        <tr>
+                            <td>{{ item.item_name }}</td>
+                            <td>{{ item.rental_count }}</td>
+                            <td>{{ "{:,.0f}".format(item.total_revenue) }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">데이터가 없습니다.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
