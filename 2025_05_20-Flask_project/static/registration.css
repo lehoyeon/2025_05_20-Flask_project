@@ -119,3 +119,22 @@ button.delete {
 button.delete:hover {
   background-color: #c0392b;
 }
+/* 사용자 등록 링크 버튼 */
+.user-register-button {
+  display: inline-block;
+  padding: 12px 20px;
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-left: 10px;
+}
+
+.user-register-button:hover {
+  background-color: #d68910;
+}
+

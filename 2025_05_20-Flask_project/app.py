@@ -8,7 +8,9 @@ db = Database()   # DB 초기화
 conn = db.connection
 cursor = conn.cursor()
 
-
+@app.route('/main')
+def main():
+    return render_template('main.html')  # HTML 파일 이름
 @app.route('/registration')
 def index():
     return render_template('registration.html')  # HTML 파일 이름

@@ -136,3 +136,23 @@ input.table-input:focus {
   outline: none;
   box-shadow: 0 0 6px rgba(33, 150, 243, 0.6);
 }
+/* 사용자 등록 링크 버튼 */
+.user-register-button {
+  display: inline-block;
+  padding: 12px 20px;
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-left: 10px;
+}
+
+.user-register-button:hover {
+  background-color: #d68910;
+}
+
+
