@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>대여 시스템 대시보드</title>
+  <style>
+    body {
+      font-family: '맑은 고딕', sans-serif;
+      background: #f0f2f5;
+      padding: 40px;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .card h2 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .highlight {
+      font-size: 24px;
+      color: #007BFF;
+      font-weight: bold;
+    }
+    .list {
+      margin-top: 40px;
+    }
+    .list h3 {
+      margin-bottom: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 대여 시스템 대시보드</h1>
+
+  <div class="card-container">
+    <div class="card">
+      <h2>오늘 대여 수</h2>
+      <div class="highlight">5건</div>
+    </div>
+    <div class="card">
+      <h2>오늘 반납 수</h2>
+      <div class="highlight">3건</div>
+    </div>
+    <div class="card">
+      <h2>누적 대여 금액</h2>
+      <div class="highlight">₩128,000</div>
+    </div>
+    <div class="card">
+      <h2>연체 건수</h2>
+      <div class="highlight" style="color: red;">2건</div>
+    </div>
+  </div>
+
+  <div class="list">
+    <h3>📌 인기 대여 물품 TOP3</h3>
+    <ul>
+      <li>1. 노트북</li>
+      <li>2. 빔프로젝터</li>
+      <li>3. HDMI 케이블</li>
+    </ul>
+  </div>
+
+</body>
+</html>
