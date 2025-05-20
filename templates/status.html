@@ -58,6 +58,14 @@
                 margin-bottom: 1rem;
             }
         }
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+        }
+        #monthlyChart {
+            max-height: 70vh;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -73,6 +81,21 @@
         <div class="summary-card p-4 flex-fill text-center">
             <div class="mb-2">총 수익 금액</div>
             <div class="summary-value">{{ "{:,.0f}".format(total_revenue) }}원</div>
+        </div>
+    </div>
+
+    <!-- Chart Modal -->
+    <div class="modal fade" id="chartModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">월별 추이 분석</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -139,4 +162,72 @@
     </div>
 </div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let chart = null;
+
+document.querySelectorAll('.summary-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', async () => {
+        const response = await fetch('/api/monthly-stats');
+        const { success, data } = await response.json();
+        
+        if (!success || !data.length) {
+            alert('데이터를 불러올 수 없습니다.');
+            return;
+        }
+
+        // Destroy existing chart
+        if (chart) chart.destroy();
+        
+        // Prepare data
+        const labels = data.map(d => d.month);
+        const rentals = data.map(d => d.rental_count);
+        const revenues = data.map(d => d.total_revenue);
+
+        // Create new chart
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '월별 대여 횟수',
+                    data: rentals,
+                    borderColor: '#6a82fb',
+                    tension: 0.3,
+                    yAxisID: 'y'
+                }, {
+                    label: '월별 수익 (원)',
+                    data: revenues,
+                    borderColor: '#fc5c7d',
+                    tension: 0.3,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index' },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { text: '대여 횟수', display: true }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { text: '수익 (원)', display: true },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // Show modal
+        new bootstrap.Modal('#chartModal').show();
+    });
+});
+</script>
 </html>

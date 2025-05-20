@@ -26,5 +26,27 @@ def status():
                          user_stats=data['user_stats'],
                          item_stats=data['item_stats'])
 
+@app.route('/api/monthly-stats')
+def monthly_stats():
+    db = Database()
+    try:
+        with db.connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    DATE_FORMAT(rent_date, '%Y-%m') AS month,
+                    COUNT(*) AS rental_count,
+                    SUM(price) AS total_revenue
+                FROM rentals
+                GROUP BY DATE_FORMAT(rent_date, '%Y-%m')
+                ORDER BY month
+            """)
+            data = cursor.fetchall()
+        return {'success': True, 'data': data}
+    except Error as e:
+        print(f"Error fetching monthly stats: {e}")
+        return {'success': False}
+    finally:
+        db.close()
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
