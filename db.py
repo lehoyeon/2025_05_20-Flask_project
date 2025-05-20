@@ -1,5 +1,6 @@
 import pymysql
 from pymysql import Error
+from rentalResult import RentalStats
 
 class Database:
     def __init__(self):
@@ -23,55 +24,34 @@ class Database:
             self.connection.close()
             print("MariaDB 연결이 종료되었습니다.")
             
+    @staticmethod
     def fetch_rental_performance():
+        """전체 대여 실적 데이터를 가져옵니다"""
         db = Database()
-        if not db.connection:
-            return None
-        try:
-            with db.connection.cursor() as cursor:
-                # 전체 실적 요약 (총 대여 횟수, 총 수익)
-                cursor.execute("""
-                    SELECT 
-                        COUNT(rental_id) AS total_rentals,
-                        COALESCE(SUM(price), 0) AS total_revenue
-                    FROM rentals
-                """)
-                total_summary = cursor.fetchone()
-
-                # 사용자별 실적 (이름, 대여 건수, 총 금액)
-                cursor.execute("""
-                    SELECT 
-                        u.name AS username,
-                        COUNT(r.rental_id) AS rental_count,
-                        COALESCE(SUM(r.price), 0) AS total_amount
-                    FROM users u
-                    LEFT JOIN rentals r ON u.user_id = r.user_id
-                    GROUP BY u.user_id, u.name
-                    ORDER BY total_amount DESC
-                """)
-                user_stats = cursor.fetchall()
-
-                # 물건별 실적 (물건명, 대여 횟수, 누적 수익)
-                cursor.execute("""
-                    SELECT 
-                        i.name AS item_name,
-                        COUNT(r.rental_id) AS rental_count,
-                        COALESCE(SUM(r.price), 0) AS total_revenue
-                    FROM items i
-                    LEFT JOIN rentals r ON i.item_id = r.item_id
-                    GROUP BY i.item_id, i.name
-                    ORDER BY total_revenue DESC
-                """)
-                item_stats = cursor.fetchall()
-
-            return {
-                'total_rentals': total_summary['total_rentals'],
-                'total_revenue': total_summary['total_revenue'],
-                'user_stats': user_stats,
-                'item_stats': item_stats
-            }
-        except Error as e:
-            print(f"쿼리 실행 중 오류 발생: {e}")
-            return None
-        finally:
-            db.close()
+        result = RentalStats.fetch_rental_performance(db.connection)
+        db.close()
+        return result
+        
+    @staticmethod
+    def fetch_monthly_stats():
+        """월별 통계 데이터를 가져옵니다"""
+        db = Database()
+        result = RentalStats.fetch_monthly_stats(db.connection)
+        db.close()
+        return result
+        
+    @staticmethod
+    def get_top_users(limit=5):
+        """상위 사용자 데이터를 가져옵니다"""
+        db = Database()
+        result = RentalStats.get_top_users(db.connection, limit)
+        db.close()
+        return result
+        
+    @staticmethod
+    def get_top_items(limit=5):
+        """상위 물품 데이터를 가져옵니다"""
+        db = Database()
+        result = RentalStats.get_top_items(db.connection, limit)
+        db.close()
+        return result
