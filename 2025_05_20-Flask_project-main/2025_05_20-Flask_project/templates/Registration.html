@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>물건 관리 페이지</title>
+  <style>
+    body {
+      font-family: '맑은 고딕', sans-serif;
+      padding: 30px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    .section {
+      margin-bottom: 40px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    label, input, select {
+      display: block;
+      margin: 10px 0;
+    }
+    input[type="text"], input[type="number"] {
+      width: 300px;
+      padding: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-top: 10px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.delete {
+      background-color: #f44336;
+    }
+    button.update {
+      background-color: #ff9800;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    input.table-input {
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠 물건 등록 / 수정 / 삭제</h1>
+
+  <div class="section">
+    <h2>1. 물건 등록</h2>
+    <form id="addItemForm">
+      <label for="itemName">물건 이름:</label>
+      <input type="text" id="itemName" name="itemName" required>
+
+      <label for="itemPrice">대여 금액 (원):</label>
+      <input type="number" id="itemPrice" name="itemPrice" required>
+
+      <label for="itemQuantity">수량:</label>
+      <input type="number" id="itemQuantity" name="itemQuantity" value="1" required>
+
+      <button type="submit">등록하기</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>2. 물건 목록 및 수정 / 삭제</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>물건명</th>
+          <th>금액(원)</th>
+          <th>수량</th>
+          <th>수정</th>
+          <th>삭제</th>
+        </tr>
+      </thead>
+      <tbody id="itemTableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const apiUrl = '/items';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadItems();
+
+      document.getElementById('addItemForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('itemName').value;
+        const price = parseInt(document.getElementById('itemPrice').value);
+        const quantity = parseInt(document.getElementById('itemQuantity').value);
+
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, price, quantity })
+        })
+        .then(res => res.json())
+        .then(() => {
+          loadItems();
+          document.getElementById('addItemForm').reset();
+        });
+      });
+    });
+
+    function loadItems() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('itemTableBody');
+          tbody.innerHTML = '';
+          data.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${item.item_id}</td>
+              <td><input class="table-input" type="text" value="${item.name}" id="name-${item.item_id}"></td>
+              <td><input class="table-input" type="number" value="${item.price}" id="price-${item.item_id}"></td>
+              <td><input class="table-input" type="number" value="${item.quantity}" id="quantity-${item.item_id}"></td>
+              <td><button class="update" onclick="updateItem(${item.item_id})">수정</button></td>
+              <td><button class="delete" onclick="deleteItem(${item.item_id})">삭제</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+    }
+
+    function updateItem(id) {
+      const name = document.getElementById(`name-${id}`).value;
+      const price = parseInt(document.getElementById(`price-${id}`).value);
+      const quantity = parseInt(document.getElementById(`quantity-${id}`).value);
+
+      fetch(`${apiUrl}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price, quantity })
+      })
+      .then(res => res.json())
+      .then(() => loadItems());
+    }
+
+    function deleteItem(id) {
+      if (confirm('정말 삭제하시겠습니까?')) {
+        fetch(`${apiUrl}/${id}`, {
+          method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(() => loadItems());
+      }
+    }
+  </script>
+
+</body>
+</html>
