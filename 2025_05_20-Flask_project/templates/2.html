@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>반납 목록</title>
+  <style>
+    body {
+      font-family: '맑은 고딕', sans-serif;
+      background-color: #f0f2f5;
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+    th {
+      background-color: #f9fafb;
+    }
+    td.returned {
+      color: gray;
+      font-weight: bold;
+    }
+    .filter-bar {
+      margin-bottom: 15px;
+      text-align: right;
+    }
+    .filter-bar input {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📁 반납 목록</h1>
+
+  <div class="container">
+    <!-- 필터바: 이름으로 검색 등 회의 때 설명 가능 -->
+    <div class="filter-bar">
+      <label for="searchInput">🔍 사용자 검색: </label>
+      <input type="text" id="searchInput" placeholder="이름 입력 (예: 홍길동)" oninput="filterTable()">
+    </div>
+
+    <table id="returnTable">
+      <thead>
+        <tr>
+          <th>사용자</th>
+          <th>물건명</th>
+          <th>반납일</th>
+          <th>금액(원)</th>
+          <th>상태</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>김영희</td>
+          <td>HDMI 케이블</td>
+          <td>2025-05-17</td>
+          <td>3000</td>
+          <td class="returned">반납 완료</td>
+        </tr>
+        <tr>
+          <td>이민수</td>
+          <td>마우스</td>
+          <td>2025-05-16</td>
+          <td>5000</td>
+          <td class="returned">반납 완료</td>
+        </tr>
+        <tr>
+          <td>최지훈</td>
+          <td>빔프로젝터</td>
+          <td>2025-05-15</td>
+          <td>20000</td>
+          <td class="returned">반납 완료</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function filterTable() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const rows = document.querySelectorAll("#returnTable tbody tr");
+      rows.forEach(row => {
+        const user = row.cells[0].textContent.toLowerCase();
+        row.style.display = user.includes(input) ? "" : "none";
+      });
+    }
+  </script>
+
+</body>
+</html>
