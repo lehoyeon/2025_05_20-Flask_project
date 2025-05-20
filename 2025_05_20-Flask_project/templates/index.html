@@ -1,0 +1,109 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>물품 대여 및 반납</title>
+</head>
+<body>
+
+    <!-- 플래시 메시지 표시 -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <h1>물품 대여</h1>
+    <form action="/rent" method="post">
+        <label for="user_id">사용자 ID:</label>
+        <input type="number" id="user_id" name="user_id" required><br><br>
+
+        <label for="item_id">물품 ID:</label>
+        <input type="number" id="item_id" name="item_id" required><br><br>
+
+        <label for="days">대여 기간(일):</label>
+        <input type="number" id="days" name="days" required><br><br>
+
+        <button type="submit">대여하기</button>
+    </form>
+
+    <h1>물품 반납</h1>
+    <form action="/return" method="post">
+        <label for="rental_id">대여 ID:</label>
+        <input type="number" id="rental_id" name="rental_id" required><br><br>
+
+        <button type="submit">반납하기</button>
+    </form>
+
+    <hr>
+
+    <h2>현재 대여 중인 내역</h2>
+    {% if rentals %}
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>대여 ID</th>
+                <th>사용자 ID</th>
+                <th>물품 ID</th>
+                <th>대여일</th>
+                <th>반납예정일</th>
+                <th>대여 금액</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rental in rentals %}
+            <tr>
+                <td>{{ rental.rental_id }}</td>
+                <td>{{ rental.user_id }}</td>
+                <td>{{ rental.item_id }}</td>
+                <td>{{ rental.rent_date }}</td>
+                <td>{{ rental.due_date }}</td>
+                <td>{{ rental.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>현재 대여 중인 내역이 없습니다.</p>
+    {% endif %}
+
+    <h2>반납 완료 내역</h2>
+    {% if returns %}
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>대여 ID</th>
+                <th>사용자 ID</th>
+                <th>물품 ID</th>
+                <th>대여일</th>
+                <th>반납일</th>
+                <th>상태</th>
+                <th>대여 금액</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in returns %}
+            <tr>
+                <td>{{ r.rental_id }}</td>
+                <td>{{ r.user_id }}</td>
+                <td>{{ r.item_id }}</td>
+                <td>{{ r.rent_date }}</td>
+                <td>{{ r.return_date }}</td>
+                <td>{{ r.status }}</td>
+                <td>{{ r.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>반납 완료된 내역이 없습니다.</p>
+    {% endif %}
+
+</body>
+</html>

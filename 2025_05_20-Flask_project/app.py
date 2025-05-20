@@ -1,99 +1,70 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-from db import Database
+import os
+from flask import Flask, render_template, request, redirect, url_for, flash
+from rental_system import RentalSystem
 
+# 현재 파일의 디렉토리 경로
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# 템플릿 폴더 경로
+template_dir = os.path.join(current_dir, 'templates')
 
-app = Flask(__name__)
-db = Database()
-conn = db.connection
-cursor = conn.cursor()
+# 템플릿 폴더 존재 여부 확인 (디버깅용)
+print(f"템플릿 폴더 경로: {template_dir}")
+print(f"템플릿 폴더 존재 여부: {os.path.exists(template_dir)}")
+if os.path.exists(template_dir):
+    print(f"템플릿 폴더 내용: {os.listdir(template_dir)}")
+
+app = Flask(__name__, template_folder=template_dir)
+app.secret_key = 'your_secret_key'  # 플래시 메시지를 사용하기 위해 필요합니다.
 
 @app.route('/')
 def index():
-    return render_template('Registration.html')  # HTML 파일 이름
-@app.route('/user')
-def users_page():
-    return render_template('user.html')
+    system = RentalSystem()
+    active_rentals = system.get_active_rentals()
+    returned_rentals = system.get_returned_rentals()
+    return render_template('index.html', rentals=active_rentals, returns=returned_rentals)
 
-# ------------------ 사용자 관련 ------------------
 
-@app.route('/users', methods=['POST'])
-def create_user():
-    name = request.json.get('name')
-    if not name:
-        return jsonify({'error': '이름을 입력하세요'}), 400
-    cursor.execute("INSERT INTO users (name) VALUES (%s)", (name,))
-    conn.commit()
-    return jsonify({'message': '사용자 등록 완료'}), 201
+@app.route('/rent', methods=['POST'])
+def rent():
+    user_id = request.form.get('user_id')
+    item_id = request.form.get('item_id')
+    days = request.form.get('days')
 
-@app.route('/users', methods=['GET'])
-def get_users():
-    cursor.execute("SELECT * FROM users")
-    users = cursor.fetchall()
-    return jsonify(users)
+    if not user_id or not item_id or not days:
+        flash('모든 필드를 입력해주세요.')
+        return redirect(url_for('index'))
 
-@app.route('/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    new_name = request.json.get('name')
-    cursor.execute("UPDATE users SET name = %s WHERE user_id = %s", (new_name, user_id))
-    conn.commit()
-    return jsonify({'message': '사용자 정보 수정 완료'})
+    try:
+        user_id = int(user_id)
+        item_id = int(item_id)
+        days = int(days)
+    except ValueError:
+        flash('입력값이 올바르지 않습니다.')
+        return redirect(url_for('index'))
 
-@app.route('/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
-    conn.commit()
-    return jsonify({'message': '사용자 삭제 완료'})
+    system = RentalSystem()
+    system.rent_item(user_id, item_id, days)
+    flash('대여가 완료되었습니다.')
+    return redirect(url_for('index'))
 
-# ------------------ 물품 관련 ------------------
+@app.route('/return', methods=['POST'])
+def return_item():
+    rental_id = request.form.get('rental_id')
 
-@app.route('/items', methods=['POST'])
-def create_item():
-    data = request.json
-    name = data.get('name')
-    price = data.get('price')
-    quantity = data.get('quantity', 1)
+    if not rental_id:
+        flash('대여 ID를 입력해주세요.')
+        return redirect(url_for('index'))
 
-    if not name or price is None:
-        return jsonify({'error': '이름과 가격은 필수입니다'}), 400
+    try:
+        rental_id = int(rental_id)
+    except ValueError:
+        flash('대여 ID가 올바르지 않습니다.')
+        return redirect(url_for('index'))
 
-    cursor.execute(
-        "INSERT INTO items (name, price, quantity) VALUES (%s, %s, %s)",
-        (name, price, quantity)
-    )
-    conn.commit()
-    return jsonify({'message': '물품 등록 완료'}), 201
+    system = RentalSystem()
+    system.return_item(rental_id)
+    flash('반납이 완료되었습니다.')
+    return redirect(url_for('index'))
 
-@app.route('/items', methods=['GET'])
-def get_items():
-    cursor.execute("SELECT * FROM items")
-    items = cursor.fetchall()
-    return jsonify(items)
-
-@app.route('/items/<int:item_id>', methods=['PUT'])
-def update_item(item_id):
-    data = request.json
-    name = data.get('name')
-    price = data.get('price')
-    quantity = data.get('quantity')
-
-    cursor.execute(
-        "UPDATE items SET name = %s, price = %s, quantity = %s WHERE item_id = %s",
-        (name, price, quantity, item_id)
-    )
-    conn.commit()
-    return jsonify({'message': '물품 수정 완료'})
-
-@app.route('/items/<int:item_id>', methods=['DELETE'])
-def delete_item(item_id):
-    cursor.execute("DELETE FROM items WHERE item_id = %s", (item_id,))
-    conn.commit()
-    return jsonify({'message': '물품 삭제 완료'})
-
-# ------------------ 종료 시 DB 연결 닫기 ------------------
-
-import atexit
-atexit.register(db.close)
-
-# ------------------ 실행 ------------------
 if __name__ == '__main__':
     app.run(debug=True)

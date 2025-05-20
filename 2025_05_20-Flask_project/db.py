@@ -1,3 +1,4 @@
+# db.py 수정
 import pymysql
 from pymysql import Error
 
@@ -16,13 +17,9 @@ class Database:
             print("MariaDB에 성공적으로 연결되었습니다.")
         except Error as e:
             print(f"MariaDB 연결 중 오류 발생: {e}")
+            raise  # 연결 실패 시 예외를 발생시켜 명확히 알림
 
     def close(self):
         if self.connection:
             self.connection.close()
             print("MariaDB 연결이 종료되었습니다.")
-
-
-if __name__ == "__main__":
-    db = Database()
-    db.close()
