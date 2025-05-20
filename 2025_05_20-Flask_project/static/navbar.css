@@ -1,0 +1,94 @@
+/* 커스텀 네비게이션 바 전체 */
+.custom-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border-bottom: 2px solid #ddd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 1rem 2rem;
+}
+
+/* 내부 컨테이너 정렬 */
+.custom-navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 로고 */
+.custom-navbar-brand {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+  user-select: none;
+}
+
+.custom-navbar-brand:hover {
+  color: #3498db;
+  transform: scale(1.05);
+}
+
+/* 메뉴 */
+.custom-navbar-menu {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 링크 */
+.custom-navbar-link {
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+  padding: 0.6rem 1rem;
+  border-bottom: 2px solid transparent;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+}
+
+.custom-navbar-link:hover {
+  color: #2980b9;
+  background-color: #f0f8ff;
+  border-bottom-color: #2980b9;
+}
+
+/* 활성화 상태 */
+.custom-navbar-link.active {
+  font-weight: 700;
+  color: #1d6fa5;
+  background-color: #e8f4fb;
+  border-bottom-color: #1d6fa5;
+  box-shadow: inset 0 -2px 4px rgba(29, 111, 165, 0.2);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .custom-navbar-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .custom-navbar-menu {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0.8rem;
+    background-color: #fafafa;
+    border-radius: 0.5rem;
+  }
+
+  .custom-navbar-link {
+    width: 100%;
+    text-align: center;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .custom-navbar-link:last-child {
+    border-bottom: none;
+  }
+}
