@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from db import Database
 
-
 app = Flask(__name__)
 db = Database()
 conn = db.connection
@@ -9,10 +8,15 @@ cursor = conn.cursor()
 
 @app.route('/')
 def index():
-    return render_template('Registration.html')  # HTML 파일 이름
+    return render_template('Registration.html')
+
 @app.route('/user')
 def users_page():
     return render_template('user.html')
+
+@app.route('/test')
+def test_page():
+    return render_template('test.html')
 
 # ------------------ 사용자 관련 ------------------
 
@@ -88,6 +92,8 @@ def delete_item(item_id):
     cursor.execute("DELETE FROM items WHERE item_id = %s", (item_id,))
     conn.commit()
     return jsonify({'message': '물품 삭제 완료'})
+
+
 
 # ------------------ 종료 시 DB 연결 닫기 ------------------
 

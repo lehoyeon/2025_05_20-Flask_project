@@ -9,9 +9,7 @@
       padding: 30px;
       background-color: #f7f7f7;
     }
-    h1 {
-      color: #333;
-    }
+    h1 { color: #333; }
     .section {
       margin-bottom: 40px;
       background: #fff;
@@ -30,6 +28,9 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+    }
+    button.return-btn {
+      background-color: #f44336;
     }
     table {
       width: 100%;
@@ -59,47 +60,33 @@
   <!-- 1. 대여 -->
   <div class="section">
     <h2>1. 물건 대여</h2>
-    <form onsubmit="event.preventDefault(); alert('대여 정보가 저장됩니다.');">
-      <label for="userName">사용자 이름:</label>
-      <input type="text" id="userName" name="userName" placeholder="이름 입력">
+    <form id="rentalForm">
+      <label for="userSelect">사용자 선택:</label>
+      <select id="userSelect" name="user_id" required>
+        <option value="" disabled selected>-- 사용자 선택 --</option>
+        <!-- 사용자 목록이 여기에 JS로 채워짐 -->
+      </select>
 
-      <label for="itemSelect">대여할 물건 선택:</label>
-      <select id="itemSelect" name="itemSelect" onchange="updatePrice()">
-        <option value="" disabled selected>-- 선택하세요 --</option>
-        <option value="노트북" data-price="15000">노트북 (15,000원)</option>
-        <option value="HDMI 케이블" data-price="3000">HDMI 케이블 (3,000원)</option>
-        <option value="빔프로젝터" data-price="20000">빔프로젝터 (20,000원)</option>
-        <option value="마우스" data-price="5000">마우스 (5,000원)</option>
+      <label for="itemSelect">물건 선택:</label>
+      <select id="itemSelect" name="item_id" required>
+        <option value="" disabled selected>-- 물건 선택 --</option>
+        <!-- 물품 목록이 여기에 JS로 채워짐 -->
       </select>
 
       <label for="price">대여 금액:</label>
       <input type="text" id="price" name="price" readonly>
 
       <label for="rentalDate">대여일:</label>
-      <input type="date" id="rentalDate" name="rentalDate" value="" readonly>
+      <input type="date" id="rentalDate" name="rent_date" readonly>
 
       <button type="submit">대여하기</button>
     </form>
   </div>
 
-  <!-- 2. 반납 -->
+  <!-- 2. 대여현황 -->
   <div class="section">
-    <h2>2. 물건 반납</h2>
-    <form onsubmit="event.preventDefault(); alert('반납 처리됩니다.');">
-      <label for="returnItem">반납할 물건 선택:</label>
-      <select id="returnItem" name="returnItem">
-        <option>노트북</option>
-        <option>HDMI 케이블</option>
-      </select>
-
-      <button type="submit">반납하기</button>
-    </form>
-  </div>
-
-  <!-- 3. 대여 현황 -->
-  <div class="section">
-    <h2>3. 현재 대여 현황</h2>
-    <table>
+    <h2>2. 대여 현황</h2>
+    <table id="rentalStatusTable">
       <thead>
         <tr>
           <th>사용자</th>
@@ -107,37 +94,155 @@
           <th>대여일</th>
           <th>금액(원)</th>
           <th>상태</th>
+          <th>액션</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>홍길동</td>
-          <td>노트북</td>
-          <td>2025-05-18</td>
-          <td>15000</td>
-          <td class="rented">대여중</td>
-        </tr>
-        <tr>
-          <td>김영희</td>
-          <td>HDMI 케이블</td>
-          <td>2025-05-17</td>
-          <td>3000</td>
-          <td class="returned">반납 완료</td>
-        </tr>
+        <!-- 대여 현황 데이터가 여기 들어감 -->
       </tbody>
     </table>
   </div>
 
   <script>
-    // 금액 및 날짜 자동 업데이트
-    function updatePrice() {
-      const itemSelect = document.getElementById("itemSelect");
-      const selected = itemSelect.options[itemSelect.selectedIndex];
-      const price = selected.getAttribute("data-price") || "";
-      document.getElementById("price").value = price ? `${price} 원` : "";
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById("rentalDate").value = today;
+  window.onload = async function () {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("rentalDate").value = today;
+
+    const userSelect = document.getElementById("userSelect");
+    const itemSelect = document.getElementById("itemSelect");
+
+    try {
+      // 사용자 목록 로드
+      const userRes = await fetch('/users'); 
+      if (!userRes.ok) throw new Error("사용자 목록 불러오기 실패");
+      const users = await userRes.json();
+      users.forEach(user => {
+        const option = document.createElement("option");
+        option.value = user.user_id;
+        option.textContent = user.name;
+        userSelect.appendChild(option);
+      });
+
+      // 물품 목록 로드
+      const itemRes = await fetch('/items'); 
+      if (!itemRes.ok) throw new Error("물품 목록 불러오기 실패");
+      const items = await itemRes.json();
+      items.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.item_id;
+        const priceNum = Number(item.price);
+        option.textContent = `${item.name} (${priceNum.toLocaleString()}원)`;
+        option.setAttribute("data-price", priceNum);
+        itemSelect.appendChild(option);
+      });
+
+      // 대여 현황도 같이 불러오기
+      await loadRentalStatus();
+
+    } catch (error) {
+      alert("데이터 로딩 실패");
+      console.error(error);
     }
+  };
+
+  // 가격 자동 설정
+  document.getElementById("itemSelect").addEventListener("change", function () {
+    const selected = this.options[this.selectedIndex];
+    const price = selected.getAttribute("data-price");
+    document.getElementById("price").value = price ? `${price} 원` : "";
+  });
+
+  // 대여하기 제출
+  document.getElementById("rentalForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const formData = {
+      user_id: document.getElementById("userSelect").value,
+      item_id: document.getElementById("itemSelect").value,  // 기존 오타 수정
+      rent_date: document.getElementById("rentalDate").value,
+      price: parseInt(document.getElementById("price").value.replace(" 원", "")),
+      status: "대여중"
+    };
+
+    try {
+      const res = await fetch('/api/rentals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (res.ok) {
+        alert("대여가 완료되었습니다.");
+        // location.reload() 대신 현황만 갱신
+        await loadRentalStatus();
+        this.reset();
+        document.getElementById("rentalDate").value = new Date().toISOString().split('T')[0];
+        document.getElementById("price").value = "";
+      } else {
+        alert("대여 처리 실패");
+      }
+    } catch (err) {
+      alert("서버 오류 발생");
+      console.error(err);
+    }
+  });
+
+  // 대여 현황 불러오기 함수
+  async function loadRentalStatus() {
+    try {
+      const res = await fetch('/api/rentals');
+      if (!res.ok) throw new Error('대여현황 불러오기 실패');
+      const rentals = await res.json();
+
+      const tbody = document.querySelector("#rentalStatusTable tbody");
+      tbody.innerHTML = "";  // 초기화
+
+      rentals.forEach(rental => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${rental.user_name || rental.user_id}</td>
+          <td>${rental.item_name || rental.item_id}</td>
+          <td>${rental.rent_date}</td>
+          <td>${Number(rental.price).toLocaleString()}</td>
+          <td class="${rental.status === '대여중' ? 'rented' : 'returned'}">${rental.status}</td>
+          <td>
+            ${rental.status === '대여중' ? `<button class="return-btn" data-id="${rental.id}">반납</button>` : ''}
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      // 반납 버튼 이벤트 등록
+      document.querySelectorAll('.return-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const rentalId = e.target.getAttribute('data-id');
+          if (!confirm('이 물건을 반납 처리하시겠습니까?')) return;
+
+          try {
+            // 반납 API 호출 (백엔드 경로에 맞게 수정)
+            const res = await fetch(`/api/rentals/${rentalId}/return`, {
+              method: 'PUT'
+            });
+            if (res.ok) {
+              alert('반납 처리되었습니다.');
+              await loadRentalStatus();
+            } else {
+              alert('반납 처리 실패');
+            }
+          } catch (err) {
+            alert('서버 오류 발생');
+            console.error(err);
+          }
+        });
+      });
+
+    } catch (err) {
+      alert(err.message);
+      console.error(err);
+    }
+  }
   </script>
 
 </body>
