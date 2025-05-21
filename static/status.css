@@ -112,3 +112,21 @@ h1 {
     background-color: #e9ecef;
     font-weight: bold;
 }
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.sortable:hover {
+    background-color: #f8f9fa;
+}
+
+.sortable.asc::after {
+    content: ' ▲';
+}
+
+.sortable.desc::after {
+    content: ' ▼';
+}
