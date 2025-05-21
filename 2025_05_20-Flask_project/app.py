@@ -1,6 +1,7 @@
 # 사전 설치 : pip install flask pymysql
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from db import Database
+from datetime import datetime 
 import atexit   # 애플리케이션 종료시 실행을 요청 (ex. DB연결 종료)
 
 app = Flask(__name__)   # Flask 앱 초기화
@@ -17,8 +18,44 @@ def index():
 @app.route('/user')
 def users_page():
     return render_template('user.html')
-# ------------------ 사용자 관련 ------------------
+@app.route('/rentals')
+def test_page():
+    return render_template('rentals.html')
+#-------------------  main ---------------------
+@app.route('/main/status')
+def status_data():
+    today = date.today()
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        # 오늘 대여 수
+        cursor.execute("SELECT COUNT(*) AS cnt FROM rentals WHERE rent_date = %s", (today,))
+        today_rentals = cursor.fetchone()['cnt']
+        # 오늘 반납 수
+        cursor.execute("SELECT COUNT(*) AS cnt FROM rentals WHERE return_date = %s", (today,))
+        today_returns = cursor.fetchone()['cnt']
+        # 누적 대여 금액
+        cursor.execute("SELECT SUM(price) AS total FROM rentals WHERE price IS NOT NULL")
+        total_revenue = cursor.fetchone()['total'] or 0
+        # 인기 대여 품목 Top 3
+        cursor.execute("""
+            SELECT i.name
+            FROM rentals r
+            JOIN items i ON r.item_id = i.item_id
+            GROUP BY i.name
+            ORDER BY COUNT(*) DESC
+            LIMIT 3
+        """)
+        top_items = [row['name'] for row in cursor.fetchall()]
 
+    conn.close()
+
+    return jsonify({
+        "today_rentals": today_rentals,
+        "today_returns": today_returns,
+        "total_revenue": total_revenue,
+        "top_items": top_items
+    })
+# ------------------ 사용자 관련 ------------------
 @app.route('/users', methods=['POST'])
 def create_user():
     name = request.json.get('name')
@@ -92,6 +129,55 @@ def delete_item(item_id):
     conn.commit()
     return jsonify({'message': '물품 삭제 완료'})
 
+# 대여 현황 조회
+@app.route('/api/rentals')
+def get_rentals():
+    query = """
+        SELECT r.rental_id, r.user_id, r.item_id, r.rent_date, r.price, r.status,
+        u.name AS user_name, i.name AS item_name
+        FROM rentals r
+        JOIN users u ON r.user_id = u.user_id
+        JOIN items i ON r.item_id = i.item_id
+    """
+    cursor.execute(query)
+    rentals = cursor.fetchall()
+    # rentals 리스트를 JSON으로 반환
+    return jsonify(rentals)
+
+# 대여 등록
+@app.route('/api/rentals', methods=['POST'])
+def create_rental():
+    data = request.json
+    user_id = data.get('user_id')
+    item_id = data.get('item_id')
+    rent_date = data.get('rent_date')
+    price = data.get('price')
+    status = data.get('status', '대여중')
+
+    cursor.execute("""
+        INSERT INTO rentals (user_id, item_id, rent_date, price, status)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (user_id, item_id, rent_date, price, status))
+    conn.commit()
+    return jsonify({'message': '대여 등록 완료'}), 201
+
+# 반납 처리
+@app.route('/api/rentals/<int:rental_id>/return', methods=['PUT'])
+def return_rental(rental_id):
+    try:
+        return_date = datetime.now()
+        cursor.execute("""
+            UPDATE rentals
+            SET status = '반납완료', return_date = %s
+            WHERE rental_id = %s
+        """, (return_date, rental_id))
+        conn.commit()
+        return jsonify({'message': '반납 처리 완료'})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 
 
 import atexit
@@ -111,10 +197,10 @@ def status():
         {'item_name': '빔프로젝터', 'rental_count': 8, 'total_revenue': 80000},
     ]
     return render_template('status.html',
-                           total_rentals=total_rentals,
-                           total_revenue=total_revenue,
-                           user_stats=user_stats,
-                           item_stats=item_stats)
+                        total_rentals=total_rentals,
+                        total_revenue=total_revenue,
+                        user_stats=user_stats,
+                        item_stats=item_stats)
 
 # ------------------ 종료 시 DB 연결 닫기 ------------------
 import atexit
