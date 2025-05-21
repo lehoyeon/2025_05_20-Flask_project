@@ -33,7 +33,7 @@ def get_return_item():
         return str(e), 500
 
 #반납 목록 엑셀 다운로드 (상단 import 확인 필)
-#pip install pands openpyxl 필요
+#pip install pandas openpyxl 필요
 
 @app.route('/download_returns')
 def download_returns():
