@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from db import Database
 import atexit   # 애플리케이션 종료시 실행을 요청 (ex. DB연결 종료)
 
-app = Flask(__name__)   # Flask 앱 초기화
+app = Flask(__name__)   # Flask 앱 초기화 @!#!@#@
 db = Database()   # DB 초기화
 conn = db.connection
 cursor = conn.cursor()
