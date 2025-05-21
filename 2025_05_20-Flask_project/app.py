@@ -9,7 +9,7 @@ from openpyxl.styles import numbers
 from openpyxl.styles import Alignment
 import atexit   # 애플리케이션 종료시 실행을 요청 (ex. DB연결 종료)
 
-app = Flask(__name__)   # Flask 앱 초기화
+app = Flask(__name__)   # Flask 앱 초기화 @!#!@#@
 db = Database()   # DB 초기화
 conn = db.connection
 cursor = conn.cursor()
