@@ -39,7 +39,7 @@ def download_returns():
         JOIN items i ON r.item_id = i.item_id
         JOIN users u ON r.user_id = u.user_id
         WHERE r.status = '반납완료'
-        """
+        """~
         
         with db.connection.cursor() as cursor:
             cursor.execute(query)
