@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>연체 내역</title>
+</head>
+<body>
+    <h1>연체 내역</h1>
+
+    {% if records %}
+        <table border="1">
+            <tr>
+                <th>대여ID</th>
+                <th>사용자명</th>
+                <th>아이템</th>
+                <th>대여일</th>
+                <th>반납예정일</th>
+                <th>연체일수</th>
+                <th>연체금액</th>
+                <th>미납유형</th>
+                <th>납부여부</th>
+                <th>비고</th>
+                <th>수납</th>
+            </tr>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.rental_id }}</td>
+                <td>{{ r.user_name || rental.user_id}}</td>
+                <td>{{ r.item_name || rental.item_id}}</td>
+                <td>{{ r.rent_date }}</td>
+                <td>{{ r.due_date }}</td>
+                <td>{{ r.overdue_days }}</td>
+                <td>{{ r.overdue_amount }}</td>
+                <td>{{ r.issue_type }}</td>
+                <td>{{ r.payment_status }}</td>
+                <td>{{ r.note }}</td>
+                <td>
+                    {if r.payment_status == '완납' %}
+                        수납완료
+                    {%else%}
+                        <button type="button" onclick="markPaid({{ r.rental_id }})">수납완료</button>
+                    {%endif%}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>대여 내역이 없습니다.</p>
+    {% endif %}
+
+<script>
+    function markPaid(rentalId, button){
+        fetch('/payment_done',{
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({rental_id: rentalId})
+        })
+        .then(response => response.json())
+        .then(data =>{
+            if(data.success){
+                const td = button.parentElement;
+                button.remove();
+                td.appendChild(document.createTextNode("수납완료"));
+            }else{
+                alert("수납처리실패:"+data.error);
+            }
+        })
+        .catch(err => alert("통신오류:"+err));
+    }
+</script>
+</body>
+</html>
