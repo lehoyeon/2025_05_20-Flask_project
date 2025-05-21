@@ -1,5 +1,6 @@
 # 사전 설치 : pip install flask pymysql
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from datetime import datetime
 from db import Database
 import atexit   # 애플리케이션 종료시 실행을 요청 (ex. DB연결 종료)
 
@@ -131,7 +132,7 @@ def create_rental():
 @app.route('/api/rentals/<int:rental_id>/return', methods=['PUT'])
 def return_rental(rental_id):
     try:
-        return_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return_date = datetime.now()
         cursor.execute("""
             UPDATE rentals
             SET status = '반납완료', return_date = %s
@@ -140,6 +141,8 @@ def return_rental(rental_id):
         conn.commit()
         return jsonify({'message': '반납 처리 완료'})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
