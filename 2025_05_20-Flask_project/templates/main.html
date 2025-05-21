@@ -4,11 +4,22 @@
   <meta charset="UTF-8">
   <title>대여 시스템 대시보드</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
-  <h1 class="text-center my-4">📊 대여 시스템 대시보드</h1>
-
+<div class="custom-navbar">
+  <div class="custom-navbar-container">
+    <a class="custom-navbar-brand" href="/main">📊 오늘의 내역</a>
+    <ul class="custom-navbar-menu">
+      <li><a class="custom-navbar-link" href="/registration">물건 관리</a></li>
+      <li><a class="custom-navbar-link" href="/rentals">대여/반납</a></li>
+       <li><a class="custom-navbar-link" href="/return_item">반납목록</a></li>
+      <li><a class="custom-navbar-link" href="/status">실적 현황</a></li>
+    </ul>
+  </div>
+</div>
+  <h1 class="text-center my-4">📊 오늘의 내역</h1>
   <div class="card-container">
     <div class="card">
       <h2>오늘 대여 수</h2>
@@ -30,7 +41,6 @@
       <li>로딩 중...</li>
     </ul>
   </div>
-
   <script>
     // 간단 Ajax 로드 (Flask 엔드포인트에 맞게 수정 가능)
     fetch("/status-data")

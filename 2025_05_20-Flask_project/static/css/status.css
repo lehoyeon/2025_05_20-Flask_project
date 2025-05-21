@@ -29,8 +29,8 @@ body::before {
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     padding: 2rem;
-    position: relative;
-    z-index: 2;
+    /* position: relative;
+    z-index: 2; */
 }
 
 
@@ -111,4 +111,14 @@ h1 {
 .table thead th {
     background-color: #e9ecef;
     font-weight: bold;
+}
+th.sortable {
+    cursor: pointer;
+    font-size: 1.1rem;
+    user-select: none;
+}
+
+th.sortable:hover {
+    background-color: #dee2e6;
+    color: #0d6efd;
 }

@@ -10,11 +10,11 @@
 <body>
 <div class="custom-navbar">
   <div class="custom-navbar-container">
-    <a class="custom-navbar-brand" href="main"> 물건 관리 시스템</a>
+    <a class="custom-navbar-brand" href="/main">📊 오늘의 내역</a>
     <ul class="custom-navbar-menu">
       <li><a class="custom-navbar-link" href="/registration">물건 관리</a></li>
       <li><a class="custom-navbar-link" href="/rentals">대여/반납</a></li>
-       <li><a class="custom-navbar-link" href="/rentals">반납목록</a></li>
+      <li><a class="custom-navbar-link" href="/return_item">반납목록</a></li>
       <li><a class="custom-navbar-link" href="/status">실적 현황</a></li>
     </ul>
   </div>
@@ -59,7 +59,6 @@
       </tbody>
     </table>
   </div>
-    <script src="{{ url_for('static', filename='js/rentals.js') }}"></script>
-
 </body>
+ <script src="{{ url_for('static', filename='js/rentals.js') }}"></script>
 </html>

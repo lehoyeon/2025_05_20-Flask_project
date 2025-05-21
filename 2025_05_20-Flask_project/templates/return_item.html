@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>반납 완료 아이템 목록</title>
+</head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/return_item.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+<body>
+<div class="custom-navbar">
+  <div class="custom-navbar-container">
+   <a class="custom-navbar-brand" href="/main">📊 오늘의 내역</a>
+    <ul class="custom-navbar-menu">
+      <li><a class="custom-navbar-link" href="/registration">물건 관리</a></li>
+      <li><a class="custom-navbar-link" href="/rentals">대여/반납</a></li>
+      <li><a class="custom-navbar-link" href="/return_item">반납목록</a></li>
+      <li><a class="custom-navbar-link" href="/status">실적 현황</a></li>
+    </ul>
+  </div>
+</div>
+  <h1>반납 완료된 아이템</h1>
+  <!-- 엑셀 다운로드 버튼 -->
+  <div style="margin-bottom:1em;">
+    <a href="{{ url_for('download_returns') }}" class="button">
+      엑셀 다운로드
+    </a>
+  </div>
+  {% if items %}
+    <table>
+      <thead>
+        <tr>
+          <th>아이템 ID</th>
+          <th>이름</th>
+          <th>가격</th>
+          <th>수량</th>
+          <th>등록일</th>
+          <th>대여 상태</th>
+          <th>반납일시</th>
+          <th>물품상태</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in items %}
+        <tr>
+          <td>{{ i.item_id }}</td>
+          <td>{{ i.name }}</td>
+          <td>{{ i.price }}</td>
+          <td>{{ i.quantity }}</td>
+          <td>{{ i.created_at.strftime('%Y-%m-%d %H:%M') if i.created_at else '' }}</td>
+          <td>{{ i.status }}</td>
+          <td>{{ i.return_date.strftime('%Y-%m-%d %H:%M') if i.return_date else '' }}</td>
+          <td>{{ i.item_condition }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>반납 완료된 아이템이 없습니다.</p>
+  {% endif %}
+</body>
+</html>
