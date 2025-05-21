@@ -152,6 +152,16 @@
     document.getElementById("price").value = price ? `${price} 원` : "";
   });
 
+  function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+
+  return `${year}년 ${month}월 ${day}일`;
+}
+
+
   // 대여하기 제출
   document.getElementById("rentalForm").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -197,22 +207,22 @@
       const tbody = document.querySelector("#rentalStatusTable tbody");
       tbody.innerHTML = "";  // 초기화
 
-      rentals.forEach(rental => {
-        const tr = document.createElement("tr");
+  rentals.forEach(rental => {
+    const tr = document.createElement("tr");
 
-        tr.innerHTML = `
-          <td>${rental.user_name || rental.user_id}</td>
-          <td>${rental.item_name || rental.item_id}</td>
-          <td>${rental.rent_date}</td>
-          <td>${Number(rental.price).toLocaleString()}</td>
-          <td class="${rental.status === '대여중' ? 'rented' : 'returned'}">${rental.status}</td>
-          <td>
-            ${rental.status === '대여중' ? `<button class="return-btn" data-id="${rental.id}">반납</button>` : ''}
-          </td>
-        `;
+  tr.innerHTML = `
+    <td>${rental.user_name || rental.user_id}</td>
+    <td>${rental.item_name || rental.item_id}</td>
+    <td>${formatDate(rental.rent_date)}</td>
+    <td>${Number(rental.price).toLocaleString()}</td>
+    <td class="${rental.status === '대여중' ? 'rented' : 'returned'}">${rental.status}</td>
+    <td>
+      ${rental.status === '대여중' ? `<button class="return-btn" data-id="${rental.rental_id}">반납</button>` : ''}
+    </td>
+  `;
 
-        tbody.appendChild(tr);
-      });
+  tbody.appendChild(tr);
+});
 
       // 반납 버튼 이벤트 등록
       document.querySelectorAll('.return-btn').forEach(btn => {
