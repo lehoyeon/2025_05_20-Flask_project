@@ -3,74 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <title>물건 대여/반납 시스템</title>
-  <style>
-    body {
-      font-family: '맑은 고딕', sans-serif;
-      padding: 30px;
-      background-color: #f7f7f7;
-    }
-    h1 { color: #333; }
-    .section {
-      margin-bottom: 40px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    label, select, input {
-      display: block;
-      margin: 10px 0;
-    }
-    button {
-      padding: 8px 16px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button.return-btn {
-      background-color: #f44336;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-    }
-    .returned {
-      color: gray;
-    }
-    .rented {
-      color: green;
-      font-weight: bold;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/rentals.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-
+<div class="custom-navbar">
+  <div class="custom-navbar-container">
+    <a class="custom-navbar-brand" href="main"> 물건 관리 시스템</a>
+    <ul class="custom-navbar-menu">
+      <li><a class="custom-navbar-link" href="/registration">물건 관리</a></li>
+      <li><a class="custom-navbar-link" href="/rentals">대여/반납</a></li>
+       <li><a class="custom-navbar-link" href="/rentals">반납목록</a></li>
+      <li><a class="custom-navbar-link" href="/status">실적 현황</a></li>
+    </ul>
+  </div>
+</div>
   <h1>📦 물건 대여/반납 시스템</h1>
-
-  <!-- 1. 대여 -->
   <div class="section">
     <h2>1. 물건 대여</h2>
     <form id="rentalForm">
       <label for="userSelect">사용자 선택:</label>
       <select id="userSelect" name="user_id" required>
         <option value="" disabled selected>-- 사용자 선택 --</option>
-        <!-- 사용자 목록이 여기에 JS로 채워짐 -->
       </select>
 
       <label for="itemSelect">물건 선택:</label>
       <select id="itemSelect" name="item_id" required>
         <option value="" disabled selected>-- 물건 선택 --</option>
-        <!-- 물품 목록이 여기에 JS로 채워짐 -->
       </select>
 
       <label for="price">대여 금액:</label>
@@ -82,8 +42,6 @@
       <button type="submit">대여하기</button>
     </form>
   </div>
-
-  <!-- 2. 대여현황 -->
   <div class="section">
     <h2>2. 대여 현황</h2>
     <table id="rentalStatusTable">
@@ -98,171 +56,10 @@
         </tr>
       </thead>
       <tbody>
-        <!-- 대여 현황 데이터가 여기 들어감 -->
       </tbody>
     </table>
   </div>
-
-  <script>
-  window.onload = async function () {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("rentalDate").value = today;
-
-    const userSelect = document.getElementById("userSelect");
-    const itemSelect = document.getElementById("itemSelect");
-
-    try {
-      // 사용자 목록 로드
-      const userRes = await fetch('/users'); 
-      if (!userRes.ok) throw new Error("사용자 목록 불러오기 실패");
-      const users = await userRes.json();
-      users.forEach(user => {
-        const option = document.createElement("option");
-        option.value = user.user_id;
-        option.textContent = user.name;
-        userSelect.appendChild(option);
-      });
-
-      // 물품 목록 로드
-      const itemRes = await fetch('/items'); 
-      if (!itemRes.ok) throw new Error("물품 목록 불러오기 실패");
-      const items = await itemRes.json();
-      items.forEach(item => {
-        const option = document.createElement("option");
-        option.value = item.item_id;
-        const priceNum = Number(item.price);
-        option.textContent = `${item.name} (${priceNum.toLocaleString()}원)`;
-        option.setAttribute("data-price", priceNum);
-        itemSelect.appendChild(option);
-      });
-
-      // 대여 현황도 같이 불러오기
-      await loadRentalStatus();
-
-    } catch (error) {
-      alert("데이터 로딩 실패");
-      console.error(error);
-    }
-  };
-
-  // 가격 자동 설정
-  document.getElementById("itemSelect").addEventListener("change", function () {
-    const selected = this.options[this.selectedIndex];
-    const price = selected.getAttribute("data-price");
-    document.getElementById("price").value = price ? `${price} 원` : "";
-  });
-
-  function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
-
-  return `${year}년 ${month}월 ${day}일`;
-}
-
-
-  // 대여하기 제출
-  document.getElementById("rentalForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const formData = {
-      user_id: document.getElementById("userSelect").value,
-      item_id: document.getElementById("itemSelect").value,  // 기존 오타 수정
-      rent_date: document.getElementById("rentalDate").value,
-      price: parseInt(document.getElementById("price").value.replace(" 원", "")),
-      status: "대여중"
-    };
-
-    try {
-      const res = await fetch('/api/rentals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (res.ok) {
-        alert("대여가 완료되었습니다.");
-        // location.reload() 대신 현황만 갱신
-        await loadRentalStatus();
-        this.reset();
-        document.getElementById("rentalDate").value = new Date().toISOString().split('T')[0];
-        document.getElementById("price").value = "";
-      } else {
-        alert("대여 처리 실패");
-      }
-    } catch (err) {
-      alert("서버 오류 발생");
-      console.error(err);
-    }
-  });
-
-  // 대여 현황 불러오기 함수
-  async function loadRentalStatus() {
-    try {
-      const res = await fetch('/api/rentals');
-      if (!res.ok) throw new Error('대여현황 불러오기 실패');
-      const rentals = await res.json();
-
-      const tbody = document.querySelector("#rentalStatusTable tbody");
-      tbody.innerHTML = "";  // 초기화
-
-  rentals.forEach(rental => {
-    const tr = document.createElement("tr");
-
-  tr.innerHTML = `
-    <td>${rental.user_name || rental.user_id}</td>
-    <td>${rental.item_name || rental.item_id}</td>
-    <td>${formatDate(rental.rent_date)}</td>
-    <td>${Number(rental.price).toLocaleString()}</td>
-    <td class="${rental.status === '대여중' ? 'rented' : 'returned'}">${rental.status}</td>
-    <td>
-      ${rental.status === '대여중' ? `<button class="return-btn" data-id="${rental.rental_id}">반납</button>` : ''}
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-});
-
-      // 반납 버튼 이벤트 등록
-document.querySelectorAll('.return-btn').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const rentalId = e.target.getAttribute('data-id');
-    if (!confirm('이 물건을 반납 처리하시겠습니까?')) return;
-
-    try {
-      // 반납 API 호출 (백엔드 경로에 맞게 수정)
-      const res = await fetch(`/api/rentals/${rentalId}/return`, {
-        method: 'PUT'
-      });
-      if (res.ok) {
-        alert('반납 처리되었습니다.');
-
-        // 여기서 버튼 숨기기 및 상태 텍스트 변경
-        const btn = e.target;
-        btn.style.display = 'none'; // 버튼 숨김
-
-        // 상태(td) 엘리먼트 찾아서 텍스트 변경
-        // 버튼의 부모(td) -> tr 찾기
-        const tr = btn.closest('tr');
-        // tr 안에서 상태 표시하는 td (예: 5번째 td, 인덱스 4) 찾기
-        const statusTd = tr.querySelector('td:nth-child(5)');
-        if (statusTd) {
-          statusTd.textContent = '반납완료';
-          statusTd.className = ''; // 필요하면 클래스 초기화
-        }
-
-        // 필요시 여기서 추가 UI 업데이트 가능
-      } else {
-        alert('반납 처리 실패');
-      }
-    } catch (err) {
-      alert('서버 오류 발생');
-      console.error(err);
-    }
-  });
-});
-  </script>
+    <script src="{{ url_for('static', filename='js/rentals.js') }}"></script>
 
 </body>
 </html>

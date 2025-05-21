@@ -1,7 +1,7 @@
 # 사전 설치 : pip install flask pymysql
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-from datetime import datetime
 from db import Database
+from datetime import datetime, date
 import atexit   # 애플리케이션 종료시 실행을 요청 (ex. DB연결 종료)
 
 app = Flask(__name__)   # Flask 앱 초기화
@@ -21,8 +21,49 @@ def users_page():
 @app.route('/rentals')
 def test_page():
     return render_template('rentals.html')
-# ------------------ 사용자 관련 ------------------
+#-------------------  main ---------------------
+@app.route('/status-data')
+def status_data():
+    today = date.today()
 
+    # db.connection과 cursor를 사용한다고 가정
+    conn = db.connection
+    cursor = conn.cursor()
+
+    # 오늘 대여 수
+    cursor.execute("SELECT COUNT(*) AS cnt FROM rentals WHERE DATE(rent_date) = %s", (today,))
+    today_rentals = cursor.fetchone()['cnt']
+
+    # 오늘 반납 수
+    cursor.execute("SELECT COUNT(*) AS cnt FROM rentals WHERE return_date = %s", (today,))
+    today_returns = cursor.fetchone()['cnt']
+
+    # 누적 대여 금액
+    cursor.execute("SELECT SUM(price) AS total FROM rentals WHERE price IS NOT NULL")
+    total_revenue = cursor.fetchone()['total'] or 0
+
+    # 인기 대여 품목 Top 3
+    cursor.execute("""
+        SELECT i.name
+        FROM rentals r
+        JOIN items i ON r.item_id = i.item_id
+        GROUP BY i.name
+        ORDER BY COUNT(*) DESC
+        LIMIT 3
+    """)
+    top_items = [row['name'] for row in cursor.fetchall()]
+
+    # 오늘 대여 수가 0이면 메시지로 변환
+    if today_rentals == 0:
+        today_rentals = "오늘 대여 수 없습니다"
+
+    return jsonify({
+        "today_rentals": today_rentals,
+        "today_returns": today_returns,
+        "total_revenue": total_revenue,
+        "top_items": top_items
+    })
+# ------------------ 사용자 관련 ------------------
 @app.route('/users', methods=['POST'])
 def create_user():
     name = request.json.get('name')
