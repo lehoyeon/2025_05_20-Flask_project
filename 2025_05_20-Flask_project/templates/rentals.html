@@ -225,34 +225,43 @@
 });
 
       // 반납 버튼 이벤트 등록
-      document.querySelectorAll('.return-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const rentalId = e.target.getAttribute('data-id');
-          if (!confirm('이 물건을 반납 처리하시겠습니까?')) return;
+document.querySelectorAll('.return-btn').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    const rentalId = e.target.getAttribute('data-id');
+    if (!confirm('이 물건을 반납 처리하시겠습니까?')) return;
 
-          try {
-            // 반납 API 호출 (백엔드 경로에 맞게 수정)
-            const res = await fetch(`/api/rentals/${rentalId}/return`, {
-              method: 'PUT'
-            });
-            if (res.ok) {
-              alert('반납 처리되었습니다.');
-              await loadRentalStatus();
-            } else {
-              alert('반납 처리 실패');
-            }
-          } catch (err) {
-            alert('서버 오류 발생');
-            console.error(err);
-          }
-        });
+    try {
+      // 반납 API 호출 (백엔드 경로에 맞게 수정)
+      const res = await fetch(`/api/rentals/${rentalId}/return`, {
+        method: 'PUT'
       });
+      if (res.ok) {
+        alert('반납 처리되었습니다.');
 
+        // 여기서 버튼 숨기기 및 상태 텍스트 변경
+        const btn = e.target;
+        btn.style.display = 'none'; // 버튼 숨김
+
+        // 상태(td) 엘리먼트 찾아서 텍스트 변경
+        // 버튼의 부모(td) -> tr 찾기
+        const tr = btn.closest('tr');
+        // tr 안에서 상태 표시하는 td (예: 5번째 td, 인덱스 4) 찾기
+        const statusTd = tr.querySelector('td:nth-child(5)');
+        if (statusTd) {
+          statusTd.textContent = '반납완료';
+          statusTd.className = ''; // 필요하면 클래스 초기화
+        }
+
+        // 필요시 여기서 추가 UI 업데이트 가능
+      } else {
+        alert('반납 처리 실패');
+      }
     } catch (err) {
-      alert(err.message);
+      alert('서버 오류 발생');
       console.error(err);
     }
-  }
+  });
+});
   </script>
 
 </body>
